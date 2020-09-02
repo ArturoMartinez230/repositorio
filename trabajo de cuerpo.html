@@ -1,0 +1,277 @@
+!DOCTYPE html >
+<html>
+  <head>
+    <meta charset= "utf-8">
+    <title> Tranforamaciones 3D</title>
+    <style>
+         html, body { margin: 0; padding: 0; overflow: hidden; }
+            #info {
+                position: absolute;
+                padding: 10px;
+                width: 100%;
+                text-align: center;
+                color: #FFFFFF;
+            }
+      canvas {display:block;}
+    </style>
+  </head>
+  <body>
+      <div id="info">trabajo de cuerpo<br/>
+            Usa los controles para trasladar.<br/>
+            
+        </div>
+        <script src="js/three.js"> </script>
+         <script src="js/dat.gui.min.js"> </script>
+          <script src="js/OrbitControls.js"> </script>
+       
+    <script>
+        
+	    var scene, aspect, camera, renderer;
+            var angleX = 0;
+            var angleY = 0;
+            var angleZ = 0;
+        
+		var startTime = Date.now();
+		
+		init();
+		animate();
+	
+		function init(){
+			scene = new THREE.Scene();
+			aspect = window.innerWidth / window.innerHeight;
+			camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+            
+				  
+			var size = 10;
+			var arrowSize = 1;
+			var divisions = size;
+			var origin = new THREE.Vector3( 0, 0, 0 );
+			var x = new THREE.Vector3( 1, 0, 0 );
+			var y = new THREE.Vector3( 0, 1, 0 );
+		  	var z = new THREE.Vector3( 0, 0, 1 );
+			var color1 = new THREE.Color( 0xFFFFFF );
+		  	var color2 = new THREE.Color( 0x333333 );
+		  	var colorR = new THREE.Color( 0xAA3333 );
+		  	var colorG = new THREE.Color( 0x33AA33 );
+		  	var colorB = new THREE.Color( 0x333366 );
+		  
+		  	//CREAR LAS GRILLAS PARA EL ESCENARIO
+		  	var axesHelper = new THREE.AxesHelper( size );
+		  	var gridHelperXY = new THREE.GridHelper( size, divisions, color1, color1);
+		  	var gridHelperXZ = new THREE.GridHelper( size, divisions, color2, color2 );
+		  	var gridHelperYZ = new THREE.GridHelper( size, divisions, color2, color2 );
+            
+            //ROTARLAS PARA QUE QUEDEN EN EL ESPACIO ADECUADO
+            gridHelperXY.rotateOnWorldAxis ( x, THREE.Math.degToRad(90) );
+            gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
+            gridHelperYZ.rotateOnWorldAxis ( z, THREE.Math.degToRad(90) );
+            
+            //CREAR LAS FLECHAS QUE INDICAN LOS EJES DE COORDENADAS 3D
+            var arrowX = new THREE.ArrowHelper( x, origin, arrowSize, colorR );
+            var arrowY = new THREE.ArrowHelper( y, origin, arrowSize, colorG );
+            var arrowZ = new THREE.ArrowHelper( z, origin, arrowSize, colorB );
+			
+			//CREAR LAS GEOMETRIAS
+            //Punto
+            //cilindro
+            var geoCilindro = new THREE.Geometry();
+            var zTemp = 0;
+            var res = 15.0;
+            for( var i = 0; i < res; i++){
+                for( var j = 0; j < res; j++){
+                    var punto = new THREE.Vector3();
+                    punto.x = 0.5 * Math.cos( ( j * 2 * Math.PI )/res);
+                    punto.y = 4 * i/res;
+                    punto.z = 0.5 * Math.sin( ( j * 2 * Math.PI )/res);
+                    geoCilindro.vertices.push( punto );
+                }
+            }
+           
+            //esfera1
+            var geoEsfera = new THREE.Geometry();
+            var zTemp = 0;
+            var resXY = 20.0;
+			var resZ = 20.0;
+            for( var i = 1; i < resZ; i++){
+                for( var j = 0; j < resXY; j++){
+                    var punto = new THREE.Vector3();
+                    punto.x = 0.4 * Math.cos( ( j * 2 * Math.PI )/resXY) * Math.sin( ( i * Math.PI )/ resZ) ;
+                    punto.y = 0.4 * Math.sin( ( j * 2 * Math.PI )/resXY) * Math.sin( ( i * Math.PI )/ resZ) ;
+                    punto.z = 0.4 * Math.cos( ( i * Math.PI )/resZ) ;
+                    geoEsfera.vertices.push( punto );
+                }
+            }
+            var geoEsfera2 = new THREE.Geometry();
+            var zTemp = 0;
+            var resXY = 20.0;
+			var resZ = 20.0;
+            for( var i = 1; i < resZ; i++){
+                for( var j = 0; j < resXY; j++){
+                    var punto = new THREE.Vector3();
+                    punto.x = 1 * Math.cos( ( j * 2 * Math.PI )/resXY) * Math.sin( ( i * Math.PI )/ resZ) ;
+                    punto.y = 1 * Math.sin( ( j * 2 * Math.PI )/resXY) * Math.sin( ( i * Math.PI )/ resZ) ;
+                    punto.z = 1 * Math.cos( ( i * Math.PI )/resZ) ;
+                    geoEsfera2.vertices.push( punto );
+                }
+            }
+			
+			//CREAR LOS MATERIALES            
+			var matPunto = new THREE.PointsMaterial( { color: 0xFFFFFF, size: 0.1 } );			
+			//CREAR LOS OBJETOS
+			var cilindro = new THREE.Points( geoCilindro, matPunto );
+            
+            cilindro2=cilindro.clone();
+            cilindro3=cilindro.clone();
+            cilindro4=cilindro.clone();
+            cilindro5=cilindro.clone();
+            cilindro6=cilindro.clone();
+            
+            //part 2
+            cilindro78=cilindro2.clone();
+            cilindro89=cilindro6.clone();
+            
+            var esfera=new THREE.Points(geoEsfera,matPunto);
+            var esfera4=new THREE.Points(geoEsfera2,matPunto);
+            esfera2=esfera.clone();
+            esfera3=esfera.clone();
+            esfera5=esfera.clone();
+            
+            esfera9=esfera4.clone();
+            
+            esfera88=esfera.clone();
+            esfera74=esfera.clone();
+            
+		  	//AGREGAR A LA ESCENA
+		  	//scene.add( gridHelperXY );
+            scene.add( gridHelperXZ );
+		  	scene.add( arrowX );	
+		  	scene.add( arrowY );	
+		  	scene.add( arrowZ );
+            
+            
+			scene.add( cilindro);
+            scene.add(cilindro2);
+            scene.add(cilindro3);
+            scene.add(cilindro5);
+            scene.add(cilindro6);
+            
+            scene.add(esfera);
+            scene.add(esfera2);
+            scene.add(esfera3);
+            scene.add(esfera9);
+            scene.add(esfera5);
+            
+            //part2 esferas
+            
+            
+            scene.add(esfera88);
+            scene.add(esfera74);
+            
+            //part 2 cilindros
+            scene.add(cilindro78);
+            scene.add(cilindro89);
+            
+            //parte 1 de posicion de esferas
+            
+            
+            esfera.position.x=1;
+            esfera2.position.x=-1;
+            esfera3.position.x=1;
+            esfera3.position.y=3;
+            esfera9.position.y=5;
+            esfera5.position.x=-1;
+            esfera5.position.y=3;
+            
+            //part 2 de posicion de esferas
+            
+            esfera88.position.x=1;
+            esfera88.position.y=-4;
+            
+            esfera74.position.x=-1;
+            esfera74.position.y=-4;
+            
+            //part 1 de posicion de cilindros
+            cilindro2.position.x=-1;
+            cilindro2.position.y=-4;
+            cilindro3.position.x=1;
+            cilindro3.position.y=-4;
+            cilindro4.position.x=1
+            cilindro5.position.x=1;
+            cilindro5.position.y=3;
+            cilindro5.rotation.x=90;
+            cilindro5.rotation.z=125;
+            cilindro6.position.x=-1;
+            cilindro6.position.y=3;
+            cilindro6.rotation.x=90;
+            cilindro6.rotation.z=145;
+            
+            //part 2 de cilindros
+            
+            cilindro78.position.x=1;
+            cilindro78.position.y=-4;
+            
+            cilindro89.position.x=-1;
+            cilindro89.position.y=-4;
+            
+			camera.position.y = 6;	 
+		  	camera.lookAt( origin );
+            //rotacion 
+            //ANGULOS DE ROTACION
+                var rotationAngles = {
+                    theta1: 0,
+                    theta2: 0,
+                    theta3: 0,
+					theta4: 0
+                };
+            
+            
+
+                var rotation = function () {
+                    angleX = THREE.Math.degToRad(rotationAngles.theta1);
+                    angleY = THREE.Math.degToRad(rotationAngles.theta2);
+                    angleZ = THREE.Math.degToRad(rotationAngles.theta3);
+                    render();
+                };
+				
+				var rotation2 = function () {
+                    console.log(rotationAngles.theta4);
+                };
+
+                var gui = new dat.GUI();
+                gui.add(rotationAngles, "theta1", -180, 180, .1).onChange(rotation);
+				gui.add(rotationAngles, "theta2", -90, 90, .1).onChange(rotation2);
+            
+			}
+    
+    function animate() {
+        render();
+        requestAnimationFrame( animate );
+    }
+    
+    function render(){
+        var dtime = Date.now()-startTime;
+        camera.position.x = 2;
+        camera.position.z = 20;
+        
+        
+        
+        var eulerRot = new THREE.Euler(angleX, angleY, angleZ, 'YZX');
+        
+        
+        cilindro2.setRotationFromEuler(eulerRot);
+        cilindro3.setRotationFromEuler(eulerRot);
+        cilindro5.setRotationFromEuler(eulerRot);
+        cilindro6.setRotationFromEuler(eulerRot);
+        esfera9.setRotationFromEuler(eulerRot);
+       
+        
+        
+        camera.lookAt( 0, 0, 0 );
+        renderer.render( scene, camera );
+    }
+      </script>
+  </body>
+</html>
